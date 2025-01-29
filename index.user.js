@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.31
+// @version      1.311
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -41,7 +41,7 @@ if (document.readyState === "loading") {
 async function addButton() {
     const wrapper = document.createElement('div');
     wrapper.innerHTML = `
-    <button onclick="main()" style="
+    <button id="my_button0" style="
     cursor: pointer; 
     user-select: none; 
     position: fixed; 
@@ -55,12 +55,15 @@ async function addButton() {
     justify-content: center; 
     align-items: center; 
     overflow: hidden; 
-    background-color: rgba(0, 0, 234, 0.9); 
     border: rgba(230, 217, 0, 1) 1px solid;">
     <img src="https://raw.githubusercontent.com/mackaronina/shablon_script/main/icon.png">
     </button>
     `
     document.body.appendChild(wrapper);
+    const button = document.querySelector('#my_button0');
+    button.addEventListener('click', () => {
+        main();
+    });
 }
 
 async function main() {
