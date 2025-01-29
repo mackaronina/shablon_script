@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.35
+// @version      1.36
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -17,6 +17,7 @@
 // @connect      pixelya.fun
 // @connect      pixuniverse.fun
 // @connect      globepixel.fun
+// @connect      pixelroyal.fun
 // @connect      localhost
 // @connect      pixel-bot-5lns.onrender.com
 // @match        *://fuckyouarkeros.fun/*
@@ -26,6 +27,7 @@
 // @match        *://pixelya.fun/*
 // @match        *://pixuniverse.fun/*
 // @match        *://globepixel.fun/*
+// @match        *://pixelroyal.fun/*
 // ==/UserScript==
 
 const src_picture = 'https://pixel-bot-5lns.onrender.com/shablon_picture'
