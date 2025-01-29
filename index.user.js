@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.32
+// @version      1.33
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -55,8 +55,9 @@ async function addButton() {
     justify-content: center; 
     align-items: center; 
     overflow: hidden; 
+    background-color: rgba(0, 0, 234, 0.9); 
     border: rgba(230, 217, 0, 1) 1px solid;">
-    <img src="https://raw.githubusercontent.com/mackaronina/shablon_script/main/icon.png">
+    <img src="https://raw.githubusercontent.com/mackaronina/shablon_script/main/icon.png" width="36" height="36">
     </button>
     `
     document.body.appendChild(wrapper);
@@ -70,7 +71,7 @@ async function main() {
     const file = await loadFile(src_picture);
     const info = await loadInfo(src_info);
     if (isTemplateExists(templateName)) {
-        updateTemplate(file, info);
+        updateTemplate(file, info, templateName);
     } else {
         addTemplate(file, info, templateName);
     }
