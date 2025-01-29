@@ -29,7 +29,7 @@
 
 const src_picture = 'https://pixel-bot-5lns.onrender.com/shablon_picture'
 const src_info = 'https://pixel-bot-5lns.onrender.com/shablon_info'
-const templateName = 'UKRPIXEL_TEMPLATE'
+const templateName = 'UKRPIXEL'
 
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", main);
@@ -52,7 +52,7 @@ function addTemplate(file, coords, name) {
     templateLoader.addFile(
         file,
         name,
-        0,
+        "0",
         coords.x,
         coords.y
     );
@@ -75,8 +75,8 @@ function getNativeTemplates() {
 function updateTemplate(file, coords, name) {
     const found = findTemplate(name);
     if (!found) return;
-    //templateLoader.deleteTemplate(found.imageId);
-    //addTemplate(file, coords, name);
+    templateLoader.deleteTemplate(found.imageId);
+    addTemplate(file, coords, name);
 }
 
 async function loadFile(src) {
