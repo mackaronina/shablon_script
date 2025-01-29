@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.3
+// @version      1.31
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
 // @downloadURL  https://raw.githubusercontent.com/mackaronina/shablon_script/main/index.user.js
 // @updateURL    https://raw.githubusercontent.com/mackaronina/shablon_script/main/index.user.js
+// @icon         https://raw.githubusercontent.com/mackaronina/shablon_script/main/icon.png
 // @connect      githubusercontent.com
 // @connect      github.com
 // @connect      fuckyouarkeros.fun
@@ -32,9 +33,34 @@ const src_info = 'https://pixel-bot-5lns.onrender.com/shablon_info'
 const templateName = 'UKRPIXEL'
 
 if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", main);
+    document.addEventListener("DOMContentLoaded", addButton);
 } else {
-    main();
+    addButton();
+}
+
+async function addButton() {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+    <button onclick="main()" style="
+    cursor: pointer; 
+    user-select: none; 
+    position: fixed; 
+    padding: 3px; 
+    top: 16px; 
+    right: 16px; 
+    width: 36px; 
+    height: 36px; 
+    border-radius: 10px; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    overflow: hidden; 
+    background-color: rgba(0, 0, 234, 0.9); 
+    border: rgba(230, 217, 0, 1) 1px solid;">
+    <img src="https://raw.githubusercontent.com/mackaronina/shablon_script/main/icon.png">
+    </button>
+    `
+    document.body.appendChild(wrapper);
 }
 
 async function main() {
@@ -88,9 +114,7 @@ function getNativeTemplates() {
 }
 
 function updateTemplate(file, coords, name) {
-    const found = findTemplate(name);
-    if (!found) return;
-    templateLoader.deleteTemplate(found.imageId);
+    templateLoader.deleteTemplate(name);
     addTemplate(file, coords, name);
 }
 
