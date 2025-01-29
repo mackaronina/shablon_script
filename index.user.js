@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         UkrpixelShablon
-// @namespace    http://tampermonkey.net/
+// @namespace    https://tampermonkey.net/
 // @version      1.0
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/mackaronina/shablon_script/main/index.user.js
-// @updateURL    https://raw.githubusercontent.com/mackaronina/shablon_script/main/index.user.js
+// @downloadURL  https://raw.githubusercontent.com/ruspix/script/main/news.user.js
+// @updateURL    https://raw.githubusercontent.com/ruspix/script/main/news.user.js
 // @connect      githubusercontent.com
 // @connect      github.com
 // @connect      fuckyouarkeros.fun
@@ -27,7 +27,8 @@
 // @match        *://globepixel.fun/*
 // ==/UserScript==
 
-const src = 'https://pixel-bot-5lns.onrender.com/shablon'
+const src_picture = 'https://pixel-bot-5lns.onrender.com/shablon_picture'
+const src_info = 'https://pixel-bot-5lns.onrender.com/shablon_info'
 const templateName = 'UKRPIXEL_TEMPLATE'
 
 if (document.readyState === "loading") {
@@ -36,41 +37,34 @@ if (document.readyState === "loading") {
     main();
 }
 
-function main() {
-    const template = loadFile(src);
-    if(isTemplateExists(template)) {
-        updateTemplate(template);
+async function main() {
+    const file = await loadFile(src_picture);
+    const coords = await loadInfo(src_info);
+    if (isTemplateExists(templateName)) {
+        updateTemplate(file, coords);
     } else {
-        addTemplate(template);
+        addTemplate(file, coords, templateName);
     }
 }
 
-function getFilenameFromUrl(url) {
-    const parts = new URL(url).pathname.split('/');
-    return parts[parts.length - 1];
-}
 
-function removeExtensionFromFilename(filename) {
-    return filename.split('.')[0];
-}
-
-function addTemplate(template) {
+function addTemplate(file, coords, name) {
     templateLoader.addFile(
-        template.file,
-        template.name,
+        file,
+        name,
         0,
-        template.x,
-        template.y
+        coords.x,
+        coords.y
     );
 }
 
-function isTemplateExists(template) {
-    return findTemplate(template) !== undefined;
+function isTemplateExists(name) {
+    return findTemplate(name) !== undefined;
 }
 
-function findTemplate(template) {
+function findTemplate(name) {
     const list = getNativeTemplates();
-    return list.find(t => template.name === t.title);
+    return list.find(t => name === t.title);
 }
 
 
@@ -78,25 +72,23 @@ function getNativeTemplates() {
     return JSON.parse(JSON.parse(localStorage['persist:tem']).list);
 }
 
-function updateTemplate(template) {
-    const found = findTemplate(template);
-    if(!found) return;
-    templateLoader.updateFile(found.imageId, template.file);
+function updateTemplate(file, coords, name) {
+    const found = findTemplate(name);
+    if (!found) return;
+    templateLoader.deleteTemplate(found.imageId);
+    addTemplate(file, coords, name);
 }
 
-function loadFile(src) {
-    const res = fetch(src);
-    const data = res.blob();
-    const filename = removeExtensionFromFilename(getFilenameFromUrl(src));
-    const x = filename.split('_')[0];
-    const y = filename.split('_')[1];
-    return {
-        file: new File(data, filename, {
-            type: res.headers.get('Content-Type') ?? 'image/png',
-        }),
-        x: x,
-        y: y,
-        name: templateName
-    };
+async function loadFile(src) {
+    const resp = await fetch(src);
+    const blob = await resp.blob();
+    return new File([blob], 'result.png', {
+        type: 'image/png',
+    });
+}
+
+async function loadInfo(src) {
+    const resp = await fetch(src);
+    return await resp.json();
 }
 
