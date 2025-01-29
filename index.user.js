@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
