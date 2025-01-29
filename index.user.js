@@ -5,8 +5,8 @@
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/ruspix/script/main/news.user.js
-// @updateURL    https://raw.githubusercontent.com/ruspix/script/main/news.user.js
+// @downloadURL  https://raw.githubusercontent.com/mackaronina/shablon_script/main/index.user.js
+// @updateURL    https://raw.githubusercontent.com/mackaronina/shablon_script/main/index.user.js
 // @connect      githubusercontent.com
 // @connect      github.com
 // @connect      fuckyouarkeros.fun
