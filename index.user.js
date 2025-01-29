@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -39,11 +39,26 @@ if (document.readyState === "loading") {
 
 async function main() {
     const file = await loadFile(src_picture);
-    const coords = await loadInfo(src_info);
+    const info = await loadInfo(src_info);
     if (isTemplateExists(templateName)) {
-        updateTemplate(file, coords);
+        updateTemplate(file, info);
     } else {
-        addTemplate(file, coords, templateName);
+        addTemplate(file, info, templateName);
+    }
+    if (info.text.length > 0) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+        <div class="Alert show">
+        <h2>Останній закріп</h2>
+        <p>${info.text}</p>
+        <button type="button" id="my_button">OK</button>
+        </div>
+        `;
+        document.body.appendChild(wrapper);
+        const button = document.querySelector('#my_button');
+        button.addEventListener('click', () => {
+            wrapper.remove();
+        });
     }
 }
 
@@ -91,4 +106,3 @@ async function loadInfo(src) {
     const resp = await fetch(src);
     return await resp.json();
 }
-
