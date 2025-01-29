@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.33
+// @version      1.35
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -68,13 +68,17 @@ async function addButton() {
 }
 
 async function main() {
-    const file = await loadFile(src_picture);
     const info = await loadInfo(src_info);
+    showInfo(info);
+    const file = await loadFile(src_picture);
     if (isTemplateExists(templateName)) {
         updateTemplate(file, info, templateName);
     } else {
         addTemplate(file, info, templateName);
     }
+}
+
+function showInfo(info) {
     if (info.text.length > 0) {
         const wrapper = document.createElement('div');
         wrapper.innerHTML = `
@@ -91,7 +95,6 @@ async function main() {
         });
     }
 }
-
 
 function addTemplate(file, coords, name) {
     templateLoader.addFile(
