@@ -75,8 +75,8 @@ function getNativeTemplates() {
 function updateTemplate(file, coords, name) {
     const found = findTemplate(name);
     if (!found) return;
-    templateLoader.deleteTemplate(found.imageId);
-    addTemplate(file, coords, name);
+    //templateLoader.deleteTemplate(found.imageId);
+    //addTemplate(file, coords, name);
 }
 
 async function loadFile(src) {
