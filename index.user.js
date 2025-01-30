@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.36
+// @version      1.37
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -43,7 +43,7 @@ if (document.readyState === "loading") {
 async function addButton() {
     const wrapper = document.createElement('div');
     wrapper.innerHTML = `
-    <button id="my_button0" style="
+    <button id="my_main_button" style="
     cursor: pointer; 
     user-select: none; 
     position: fixed; 
@@ -63,10 +63,8 @@ async function addButton() {
     </button>
     `
     document.body.appendChild(wrapper);
-    const button = document.querySelector('#my_button0');
-    button.addEventListener('click', () => {
-        main();
-    });
+    const button = document.querySelector('#my_main_button');
+    button.addEventListener('click', main);
 }
 
 async function main() {
@@ -82,9 +80,10 @@ async function main() {
 
 function showInfo(info) {
     if (info.text.length > 0) {
+        closeModal();
         const wrapper = document.createElement('div');
         wrapper.innerHTML = `
-        <div class="Alert show">
+        <div class="Alert show" id="my_modal">
         <h2>Останній закріп</h2>
         <p>${info.text}</p>
         <button type="button" id="my_button">OK</button>
@@ -92,10 +91,13 @@ function showInfo(info) {
         `;
         document.body.appendChild(wrapper);
         const button = document.querySelector('#my_button');
-        button.addEventListener('click', () => {
-            wrapper.remove();
-        });
+        button.addEventListener('click', closeModal);
     }
+}
+
+function closeModal() {
+    const modal = document.querySelector('#my_modal');
+    if (modal) modal.remove();
 }
 
 function addTemplate(file, coords, name) {
