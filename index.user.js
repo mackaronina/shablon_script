@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.41
+// @version      1.43
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -62,7 +62,7 @@ function init() {
     radarMain();
 }
 
-function addButton() {
+async function addButton() {
     const wrapper = document.createElement('div');
     wrapper.innerHTML = `
     <button id="my_main_button" style="
@@ -181,7 +181,7 @@ function render() {
             let index = pixelList.length;
             while (index > 0) {
                 index--;
-                let [setTime, x, y] = pixelList[index];
+                let [setTime, x, y, i, j] = pixelList[index];
                 const timePassed = curTime - setTime;
                 if (timePassed > NOTIFICATION_TIME) {
                     pixelList.splice(index, 1);
@@ -208,12 +208,19 @@ function render() {
     } catch (err) {
         console.error(`Render error`, err,);
     }
-    setTimeout(render, 5);
+    setTimeout(render, 10);
 }
 
-function addPixel(x, y) {
-    //if (!pixelList.some(item => item[1] === x && item[2] === y))
-    pixelList.unshift([Date.now(), x, y]);
+function addPixel(x, y, i, j) {
+    for (let k = 0; k < pixelList.length; k++) {
+        if (pixelList[k][3] === i && pixelList[k][4] === j) {
+            pixelList[k][0] = Date.now();
+            pixelList[k][1] = x;
+            pixelList[k][2] = y;
+            return;
+        }
+    }
+    pixelList.unshift([Date.now(), x, y, i, j]);
 }
 
 function getPixelFromChunkOffset(i, j, offset, canvasSize) {
@@ -228,7 +235,7 @@ function getPixelFromChunkOffset(i, j, offset, canvasSize) {
 function renderPixel(i, j, offset) {
     const canvasSize = 65536;
     const [x, y] = getPixelFromChunkOffset(i, j, offset, canvasSize);
-    addPixel(x, y);
+    addPixel(x, y, i, j);
 }
 
 function renderPixels({i, j, pixels}) {
@@ -375,7 +382,7 @@ function radarMain() {
     pixelPlanetEvents.on('setscale', updateScale);
     pixelPlanetEvents.on('setviewcoordinates', updateView);
 
-    setTimeout(render, 5);
+    setTimeout(render, 10);
 
     const url = `${
         window.location.protocol === 'https:' ? 'wss:' : 'ws:'
