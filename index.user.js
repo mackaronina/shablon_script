@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.43
+// @version      1.44
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -214,7 +214,6 @@ function render() {
 function addPixel(x, y, i, j) {
     for (let k = 0; k < pixelList.length; k++) {
         if (pixelList[k][3] === i && pixelList[k][4] === j) {
-            pixelList[k][0] = Date.now();
             pixelList[k][1] = x;
             pixelList[k][2] = y;
             return;
