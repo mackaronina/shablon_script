@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.44
+// @version      1.46
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -58,8 +58,8 @@ if (document.readyState === "loading") {
 }
 
 function init() {
-    addButton();
-    radarMain();
+    setTimeout(addButton);
+    setTimeout(radarMain);
 }
 
 async function addButton() {
@@ -350,7 +350,9 @@ function socketConnect(i, url, allChunks) {
         console.error('Socket encountered error, closing socket', err);
     };
     setInterval(() => {
-        ws.send(dehydratePing())
+        if (ws.readyState !== WebSocket.CLOSED) {
+            ws.send(dehydratePing());
+        }
     }, 23000)
 }
 
@@ -395,6 +397,8 @@ function radarMain() {
         }
     }
     for (let i = 0; i < 4; i++) {
-        socketConnect(i, url, allChunks);
+        setTimeout(() => {
+            socketConnect(i, url, allChunks)
+        });
     }
 }
