@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.46
+// @version      1.51
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -39,12 +39,17 @@ const NOTIFICATION_TIME = 2000;
 
 let pixelList = [];
 let canvas;
-let notifCircle;
+let notifCircles = [];
+let mapPointer;
 
 const args = window.location.href.split(',');
 let globalScale = 1;
 let viewX = parseInt(args[args.length - 3]);
 let viewY = parseInt(args[args.length - 2]);
+
+
+let mapPoints = []
+let shablonHash = '';
 
 const PING_OP = 0xB0;
 const REG_MCHUNKS_OP = 0xA3;
@@ -58,68 +63,90 @@ if (document.readyState === "loading") {
 }
 
 function init() {
-    setTimeout(addButton);
+    setTimeout(shablonMain);
     setTimeout(radarMain);
 }
 
-async function addButton() {
+async function shablonMain() {
+    addModal();
+    addButton();
+    await updateInfo(false);
+    setInterval(updateInfo, 60000);
+}
+
+async function updateInfo(show = true) {
+    const info = await loadInfo(src_info);
+
+    const modal_text = document.querySelector('#modal_text');
+    if (info.text.length === 0) {
+        modal_text.innerHTML = 'Закріп без тексту афіа'
+    } else if (info.text !== modal_text.innerHTML) {
+        modal_text.innerHTML = info.text;
+        if (show) showModal();
+    }
+
+    mapPoints = info.points;
+
+    if (info.pic_hash !== shablonHash) {
+        shablonHash = info.pic_hash;
+        const file = await loadFile(src_picture);
+        if (isTemplateExists(templateName)) {
+            updateTemplate(file, info, templateName);
+        } else {
+            addTemplate(file, info, templateName);
+        }
+    }
+}
+
+function addModal() {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+    <div class="Alert show" id="my_modal" style="display: none;">
+    <h2>Останній закріп</h2>
+    <p id="modal_text">Закріп без тексту</p>
+    <button type="button" id="my_button">OK</button>
+    </div>
+    `;
+    document.body.appendChild(wrapper);
+    const button = document.querySelector('#my_button');
+    button.addEventListener('click', closeModal);
+}
+
+function addButton() {
     const wrapper = document.createElement('div');
     wrapper.innerHTML = `
     <button id="my_main_button" style="
-    cursor: pointer; 
-    user-select: none; 
-    position: fixed; 
-    padding: 3px; 
-    top: 16px; 
-    right: 16px; 
-    width: 36px; 
-    height: 36px; 
-    border-radius: 10px; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    overflow: hidden; 
-    background-color: rgba(0, 0, 234, 0.9); 
+    cursor: pointer;
+    user-select: none;
+    position: fixed;
+    padding: 3px;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background-color: rgba(0, 0, 234, 0.9);
     border: rgba(230, 217, 0, 1) 1px solid;">
     <img src="https://raw.githubusercontent.com/mackaronina/shablon_script/main/icon.png" width="36" height="36">
     </button>
     `
     document.body.appendChild(wrapper);
     const button = document.querySelector('#my_main_button');
-    button.addEventListener('click', buttonClick);
-}
-
-async function buttonClick() {
-    const info = await loadInfo(src_info);
-    showInfo(info);
-    const file = await loadFile(src_picture);
-    if (isTemplateExists(templateName)) {
-        updateTemplate(file, info, templateName);
-    } else {
-        addTemplate(file, info, templateName);
-    }
-}
-
-function showInfo(info) {
-    if (info.text.length > 0) {
-        closeModal();
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = `
-        <div class="Alert show" id="my_modal">
-        <h2>Останній закріп</h2>
-        <p>${info.text}</p>
-        <button type="button" id="my_button">OK</button>
-        </div>
-        `;
-        document.body.appendChild(wrapper);
-        const button = document.querySelector('#my_button');
-        button.addEventListener('click', closeModal);
-    }
+    button.addEventListener('click', showModal);
 }
 
 function closeModal() {
     const modal = document.querySelector('#my_modal');
-    if (modal) modal.remove();
+    if (modal) modal.style.display = 'none';
+}
+
+function showModal() {
+    const modal = document.querySelector('#my_modal');
+    if (modal) modal.style.display = 'block';
 }
 
 function addTemplate(file, coords, name) {
@@ -164,6 +191,71 @@ async function loadInfo(src) {
     return await resp.json();
 }
 
+async function loadColors() {
+    const resp = await fetch('/api/me');
+    const data = await resp.json();
+    for (const [key, canvas] of Object.entries(data['canvases'])) {
+        if (canvas['ident'] === window.location.hash.substring(1, 2))
+            return canvas['colors'];
+    }
+    return [
+        [202, 227, 255],
+        [255, 255, 255],
+        [255, 255, 255],
+        [228, 228, 228],
+        [196, 196, 196],
+        [136, 136, 136],
+        [78, 78, 78],
+        [0, 0, 0],
+        [244, 179, 174],
+        [255, 167, 209],
+        [255, 84, 178],
+        [255, 101, 101],
+        [229, 0, 0],
+        [154, 0, 0],
+        [254, 164, 96],
+        [229, 149, 0],
+        [160, 106, 66],
+        [96, 64, 40],
+        [245, 223, 176],
+        [255, 248, 137],
+        [229, 217, 0],
+        [148, 224, 68],
+        [2, 190, 1],
+        [104, 131, 56],
+        [0, 101, 19],
+        [202, 227, 255],
+        [0, 211, 221],
+        [0, 131, 199],
+        [0, 0, 234],
+        [25, 25, 115],
+        [207, 110, 228],
+        [130, 0, 128],
+        [83, 39, 68],
+        [125, 46, 78],
+        [193, 55, 71],
+        [214, 113, 55],
+        [252, 154, 41],
+        [68, 33, 57],
+        [131, 51, 33],
+        [163, 61, 24],
+        [223, 96, 22],
+        [31, 37, 127],
+        [10, 79, 175],
+        [10, 126, 230],
+        [88, 237, 240],
+        [37, 20, 51],
+        [53, 33, 67],
+        [66, 21, 100],
+        [74, 27, 144],
+        [110, 75, 237],
+        [16, 58, 47],
+        [16, 74, 31],
+        [16, 142, 47],
+        [16, 180, 47],
+        [117, 215, 87]
+    ];
+}
 
 function worldToScreen(x, y) {
     return [
@@ -177,11 +269,25 @@ function render() {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         if (globalScale < 0.8) {
+            for (let index = 0; index < mapPoints.length; index++) {
+                const point = mapPoints[index];
+                if (point.site !== window.location.host || point.canvas !== window.location.hash.substring(1, 2))
+                    continue;
+                const [sx, sy] = worldToScreen(point.x, point.y)
+                    .map((z) => z + globalScale / 2);
+                const circleScale = notificationRadius / 100;
+                ctx.save();
+                ctx.scale(circleScale, circleScale);
+                ctx.drawImage(
+                    mapPointer,
+                    Math.round(sx / circleScale - 150),
+                    Math.round(sy / circleScale - 150),
+                );
+                ctx.restore();
+            }
             const curTime = Date.now();
-            let index = pixelList.length;
-            while (index > 0) {
-                index--;
-                let [setTime, x, y, i, j] = pixelList[index];
+            for (let index = pixelList.length - 1; index >= 0; index--) {
+                let [setTime, x, y, i, j, color] = pixelList[index];
                 const timePassed = curTime - setTime;
                 if (timePassed > NOTIFICATION_TIME) {
                     pixelList.splice(index, 1);
@@ -189,18 +295,14 @@ function render() {
                 }
                 const [sx, sy] = worldToScreen(x, y)
                     .map((z) => z + globalScale / 2);
-                if (sx < 0 || sy < 0 || sx > canvas.width || sx > canvas.height) {
-                    pixelList.splice(index, 1);
-                    continue;
-                }
                 const notRadius = timePassed / NOTIFICATION_TIME * notificationRadius;
                 const circleScale = notRadius / 100;
                 ctx.save();
                 ctx.scale(circleScale, circleScale);
                 ctx.drawImage(
-                    notifCircle,
-                    Math.round(sx / circleScale - 100),
-                    Math.round(sy / circleScale - 100),
+                    notifCircles[color],
+                    Math.round(sx / circleScale - 105),
+                    Math.round(sy / circleScale - 105),
                 );
                 ctx.restore();
             }
@@ -211,15 +313,16 @@ function render() {
     setTimeout(render, 10);
 }
 
-function addPixel(x, y, i, j) {
+function addPixel(x, y, i, j, color) {
     for (let k = 0; k < pixelList.length; k++) {
         if (pixelList[k][3] === i && pixelList[k][4] === j) {
             pixelList[k][1] = x;
             pixelList[k][2] = y;
+            pixelList[k][5] = color;
             return;
         }
     }
-    pixelList.unshift([Date.now(), x, y, i, j]);
+    pixelList.unshift([Date.now(), x, y, i, j, color]);
 }
 
 function getPixelFromChunkOffset(i, j, offset, canvasSize) {
@@ -231,17 +334,16 @@ function getPixelFromChunkOffset(i, j, offset, canvasSize) {
     return [x, y];
 }
 
-function renderPixel(i, j, offset) {
+function renderPixel(i, j, offset, color) {
     const canvasSize = 65536;
     const [x, y] = getPixelFromChunkOffset(i, j, offset, canvasSize);
-    addPixel(x, y, i, j);
+    addPixel(x, y, i, j, color);
 }
 
 function renderPixels({i, j, pixels}) {
-    pixels.forEach((pxl) => {
-        const [offset, color] = pxl;
-        renderPixel(i, j, offset);
-    });
+    const pxl = pixels[pixels.length - 1];
+    const [offset, color] = pxl;
+    renderPixel(i, j, offset, color);
 }
 
 function clamp(n, min, max) {
@@ -356,7 +458,7 @@ function socketConnect(i, url, allChunks) {
     }, 23000)
 }
 
-function radarMain() {
+async function radarMain() {
     canvas = document.createElement('canvas');
     canvas.style.position = 'fixed';
     canvas.style.top = '0';
@@ -370,15 +472,32 @@ function radarMain() {
 
     window.addEventListener('resize', onWindowResize);
 
-    notifCircle = document.createElement('canvas');
-    notifCircle.width = 200;
-    notifCircle.height = 200;
-    const notifcontext = notifCircle.getContext('2d');
-    notifcontext.fillStyle = `rgba(255, 0, 0, 0.5)`;
-    notifcontext.beginPath();
-    notifcontext.arc(100, 100, 100, 0, 2 * Math.PI);
-    notifcontext.closePath();
-    notifcontext.fill();
+    const colors = await loadColors();
+    colors.forEach(color => {
+        const notifCircle = document.createElement('canvas');
+        notifCircle.width = 210;
+        notifCircle.height = 210;
+        const notifcontext = notifCircle.getContext('2d');
+        notifcontext.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.7)`;
+        notifcontext.beginPath();
+        notifcontext.arc(105, 105, 100, 0, 2 * Math.PI);
+        notifcontext.closePath();
+        notifcontext.fill();
+        notifcontext.lineWidth = 7;
+        notifcontext.strokeStyle = '#FF0000';
+        notifcontext.stroke();
+        notifCircles.push(notifCircle);
+    })
+
+    mapPointer = document.createElement('canvas');
+    mapPointer.width = 300;
+    mapPointer.height = 300;
+    const pointercontext = mapPointer.getContext('2d');
+    const img = document.createElement("img");
+    img.src = "https://raw.githubusercontent.com/mackaronina/shablon_script/main/map_pointer.png";
+    img.addEventListener("load", () => {
+        pointercontext.drawImage(img, 0, 0);
+    });
 
     pixelPlanetEvents.on('setscale', updateScale);
     pixelPlanetEvents.on('setviewcoordinates', updateView);
