@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.51
+// @version      1.52
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -483,7 +483,7 @@ async function radarMain() {
         notifcontext.arc(105, 105, 100, 0, 2 * Math.PI);
         notifcontext.closePath();
         notifcontext.fill();
-        notifcontext.lineWidth = 7;
+        notifcontext.lineWidth = 5;
         notifcontext.strokeStyle = '#FF0000';
         notifcontext.stroke();
         notifCircles.push(notifCircle);
