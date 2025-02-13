@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.52
+// @version      1.53
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -494,10 +494,10 @@ async function radarMain() {
     mapPointer.height = 300;
     const pointercontext = mapPointer.getContext('2d');
     const img = document.createElement("img");
-    img.src = "https://raw.githubusercontent.com/mackaronina/shablon_script/main/map_pointer.png";
     img.addEventListener("load", () => {
         pointercontext.drawImage(img, 0, 0);
     });
+    img.src = "https://raw.githubusercontent.com/mackaronina/shablon_script/main/map_pointer.svg";
 
     pixelPlanetEvents.on('setscale', updateScale);
     pixelPlanetEvents.on('setviewcoordinates', updateView);
