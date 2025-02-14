@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.53
+// @version      1.54
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -79,7 +79,7 @@ async function updateInfo(show = true) {
 
     const modal_text = document.querySelector('#modal_text');
     if (info.text.length === 0) {
-        modal_text.innerHTML = 'Закріп без тексту афіа'
+        modal_text.innerHTML = 'Закріп без тексту'
     } else if (info.text !== modal_text.innerHTML) {
         modal_text.innerHTML = info.text;
         if (show) showModal();
