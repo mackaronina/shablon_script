@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.54
+// @version      1.61
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -36,7 +36,6 @@ const templateName = 'UKRPIXEL'
 
 let notificationRadius = 300;
 const NOTIFICATION_TIME = 2000;
-
 let pixelList = [];
 let canvas;
 let notifCircles = [];
@@ -47,9 +46,11 @@ let globalScale = 1;
 let viewX = parseInt(args[args.length - 3]);
 let viewY = parseInt(args[args.length - 2]);
 
+let possibleVoidPoints = {};
 
-let mapPoints = []
+let mapPoints = [];
 let shablonHash = '';
+let pinText = 'Закріп без тексту';
 
 const PING_OP = 0xB0;
 const REG_MCHUNKS_OP = 0xA3;
@@ -77,12 +78,11 @@ async function shablonMain() {
 async function updateInfo(show = true) {
     const info = await loadInfo(src_info);
 
-    const modal_text = document.querySelector('#modal_text');
     if (info.text.length === 0) {
-        modal_text.innerHTML = 'Закріп без тексту'
-    } else if (info.text !== modal_text.innerHTML) {
-        modal_text.innerHTML = info.text;
-        if (show) showModal();
+        pinText = 'Закріп без тексту'
+    } else if (info.text !== pinText) {
+        pinText = info.text;
+        if (show) showPinModal();
     }
 
     mapPoints = info.points;
@@ -102,7 +102,7 @@ function addModal() {
     const wrapper = document.createElement('div');
     wrapper.innerHTML = `
     <div class="Alert show" id="my_modal" style="display: none;">
-    <h2>Останній закріп</h2>
+    <h2 id="modal_title">Останній закріп</h2>
     <p id="modal_text">Закріп без тексту</p>
     <button type="button" id="my_button">OK</button>
     </div>
@@ -136,7 +136,7 @@ function addButton() {
     `
     document.body.appendChild(wrapper);
     const button = document.querySelector('#my_main_button');
-    button.addEventListener('click', showModal);
+    button.addEventListener('click', showPinModal);
 }
 
 function closeModal() {
@@ -147,6 +147,11 @@ function closeModal() {
 function showModal() {
     const modal = document.querySelector('#my_modal');
     if (modal) modal.style.display = 'block';
+}
+
+function showPinModal() {
+    setModal('Останній закріп', pinText);
+    showModal();
 }
 
 function addTemplate(file, coords, name) {
@@ -341,6 +346,13 @@ function renderPixel(i, j, offset, color) {
 }
 
 function renderPixels({i, j, pixels}) {
+    if (pixels.length === 33 || pixels.length === 25 || pixels.length === 17) {
+        const key = `${i}_${j}`
+        if (possibleVoidPoints[key])
+            possibleVoidPoints[key] += 1;
+        else
+            possibleVoidPoints[key] = 1;
+    }
     const pxl = pixels[pixels.length - 1];
     const [offset, color] = pxl;
     renderPixel(i, j, offset, color);
@@ -411,6 +423,66 @@ function onBinaryMessage(buffer) {
     }
 }
 
+function getMaxKeyFromDict(dict) {
+    const items = Object.keys(dict).map(
+        (key) => {
+            return [key, dict[key]]
+        });
+    items.sort(
+        (first, second) => {
+            return second[1] - first[1]
+        }
+    );
+    const keys = items.map(
+        (e) => {
+            return e[0]
+        });
+    return keys[0];
+}
+
+function getLinkFromChunk(i, j) {
+    const canvasSize = 65536;
+    const canvasOffset = Math.pow(canvasSize, 0.5);
+    const offset = Math.floor(-canvasOffset * canvasOffset / 2);
+    const x = i * 256 + offset + 128;
+    const y = j * 256 + offset + 128;
+    const canvas_char = window.location.hash.substring(1, 2);
+    const host = window.location.host;
+    return `<a href="https://${host}/#${canvas_char},${x},${y},15">${x},${y}</a>`
+}
+
+function setModal(title, text) {
+    const modal_title = document.querySelector('#modal_title');
+    modal_title.innerHTML = title;
+    const modal_text = document.querySelector('#modal_text');
+    modal_text.innerHTML = text;
+}
+
+function showVoidModal() {
+    let pointText = "не знайдено";
+    if (Object.keys(possibleVoidPoints).length !== 0) {
+        const point = getMaxKeyFromDict(possibleVoidPoints);
+        const i = parseInt(point.split('_')[0]);
+        const j = parseInt(point.split('_')[1]);
+        pointText = getLinkFromChunk(i, j);
+    }
+    setModal('Войд', `Прямо зараз починається войд. Координати: ${pointText}`);
+    showModal();
+    possibleVoidPoints = {};
+}
+
+function onStringMessage(message) {
+    const comma = message.indexOf(',');
+    if (comma === -1) {
+        return;
+    }
+    const key = message.slice(0, comma);
+    const msg_info = JSON.parse(message.slice(comma + 1));
+    if (key === 'cm' && msg_info[0] === 'event' && msg_info[1].includes('Alert! Danger!')) {
+        showVoidModal();
+    }
+}
+
 function dehydrateRegCanvas(canvasId) {
     const buffer = new ArrayBuffer(1 + 1);
     const view = new DataView(buffer);
@@ -419,10 +491,12 @@ function dehydrateRegCanvas(canvasId) {
     return buffer;
 }
 
-function onMessage({data: message}) {
+function onMessage(message, ignoreChat) {
     try {
         if (typeof message !== 'string') {
             onBinaryMessage(message);
+        } else if (!ignoreChat) {
+            onStringMessage(message);
         }
     } catch (err) {
         console.error(`An error occurred while parsing websocket message ${message}`, err,);
@@ -441,7 +515,12 @@ function socketConnect(i, url, allChunks) {
         }
         ws.send(dehydrateRegMChunks(chunkids));
     };
-    ws.onmessage = onMessage;
+    ws.onmessage = ({data: message}) => {
+        if (i === 0)
+            onMessage(message, false);
+        else
+            onMessage(message, true);
+    };
     ws.onclose = () => {
         console.log(`Socket ${i} closed`);
         setTimeout(() => {
