@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.61
+// @version      1.63
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -16,6 +16,7 @@
 // @connect      chillpixel.xyz
 // @connect      pixelya.fun
 // @connect      pixuniverse.fun
+// @connect      pixuniverse.xyz
 // @connect      globepixel.fun
 // @connect      pixelroyal.fun
 // @connect      localhost
@@ -418,7 +419,7 @@ function onBinaryMessage(buffer) {
     if (buffer.byteLength === 0) return;
     const data = new DataView(buffer);
     const opcode = data.getUint8(0);
-    if (opcode === PIXEL_UPDATE_OP || opcode === 145) {
+    if (opcode === PIXEL_UPDATE_OP || opcode === 145 || opcode === 129) {
         renderPixels(hydratePixelUpdate(data));
     }
 }
