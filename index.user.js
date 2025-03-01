@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.64
+// @version      1.66
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -20,7 +20,7 @@
 // @connect      globepixel.fun
 // @connect      pixelroyal.fun
 // @connect      localhost
-// @connect      pixel-bot-5lns.onrender.com
+// @connect      pixel-bot-2.onrender.com
 // @match        *://fuckyouarkeros.fun/*
 // @match        *://pixelplanet.fun/*
 // @match        *://pixmap.fun/*
@@ -32,8 +32,8 @@
 // @match        *://pixelroyal.fun/*
 // ==/UserScript==
 
-const src_picture = 'https://pixel-bot-5lns.onrender.com/shablon_picture'
-const src_info = 'https://pixel-bot-5lns.onrender.com/shablon_info'
+const src_picture = 'https://pixel-bot-2.onrender.com/shablon_picture'
+const src_info = 'https://pixel-bot-2.onrender.com/shablon_info'
 const templateName = 'UKRPIXEL'
 
 let notificationRadius = 300;
