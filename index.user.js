@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.71
+// @version      1.72
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -58,6 +58,9 @@ const PING_OP = 0xB0;
 const REG_MCHUNKS_OP = 0xA3;
 const PIXEL_UPDATE_OP = 0xC1;
 const REG_CANVAS_OP = 0xA0;
+
+const START_TIMELAPSE_TEXT = "Створити таймлапс";
+const STOP_TIMELAPSE_TEXT = "Стоп";
 
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
@@ -623,14 +626,19 @@ function record() {
         link.setAttribute('href', url);
         link.click();
     }
-    document.addEventListener("videoPause", () => {
+    document.addEventListener("videoStop", () => {
         mediaRecorder.stop();
     });
     return [mediaRecorder, recordCanvas.getContext('2d')];
 }
 
-function findElement(expression) {
-    return document.evaluate(expression, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+function findElement(expression, contextNode) {
+    return document.evaluate(expression, contextNode, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+}
+
+function stopVideo(timelapseButton) {
+    timelapseButton.innerText = START_TIMELAPSE_TEXT;
+    document.dispatchEvent(new CustomEvent("videoStop"));
 }
 
 async function timelapseMain() {
@@ -640,30 +648,36 @@ async function timelapseMain() {
                 if (!(node instanceof HTMLElement)) continue;
                 if (node.matches('div[class="historyselect"]') || node.matches('div[id="historyselect"]')) {
                     const timelapseButton = document.createElement("button");
-                    timelapseButton.innerText = "Створити таймлапс";
+                    timelapseButton.innerText = START_TIMELAPSE_TEXT;
                     timelapseButton.onclick = () => {
-                        if (timelapseButton.innerText === "Створити таймлапс") {
-                            if (!findElement("//button[text()='→']")) {
+                        if (timelapseButton.innerText === START_TIMELAPSE_TEXT) {
+                            if (!findElement("//button[text()='→']", node)) {
                                 timelapseButton.innerText = "Вибери дату";
                                 setTimeout(() => {
-                                    timelapseButton.innerText = "Створити таймлапс";
+                                    timelapseButton.innerText = START_TIMELAPSE_TEXT;
                                 }, 1000);
                                 return;
                             }
-                            timelapseButton.innerText = "Стоп";
+                            timelapseButton.innerText = STOP_TIMELAPSE_TEXT;
                             const [mediaRecorder, context] = record();
                             setInterval(() => {
                                 if (mediaRecorder.state === "recording") {
-                                    const arrow = findElement("//button[text()='→']");
+                                    const arrow = findElement("//button[text()='→']", node);
                                     const canvas = document.querySelector('.viewport');
                                     context.drawImage(canvas, 0, 0);
+                                    const startDate = findElement("//input[@type='date']", node).value;
+                                    const selectElem = findElement('//select', node);
+                                    const lastHour = selectElem.value === selectElem.options[selectElem.options.length - 1].value;
                                     arrow.click();
+                                    setTimeout(() => {
+                                        const endDate = findElement("//input[@type='date']", node).value;
+                                        if (startDate === endDate && lastHour)
+                                            stopVideo(timelapseButton);
+                                    }, 100);
                                 }
                             }, 500);
-                        } else if (timelapseButton.innerText === "Стоп") {
-                            timelapseButton.innerText = "Створити таймлапс";
-                            document.dispatchEvent(new CustomEvent("videoPause"));
-                        }
+                        } else if (timelapseButton.innerText === STOP_TIMELAPSE_TEXT)
+                            stopVideo(timelapseButton);
                     }
                     node.style.height = "auto";
                     node.appendChild(timelapseButton);
