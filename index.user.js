@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.66
+// @version      1.71
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -68,6 +68,7 @@ if (document.readyState === "loading") {
 function init() {
     setTimeout(shablonMain);
     setTimeout(radarMain);
+    setTimeout(timelapseMain);
 }
 
 async function shablonMain() {
@@ -601,4 +602,78 @@ async function radarMain() {
             socketConnect(i, url, allChunks)
         });
     }
+}
+
+function record() {
+    const recordCanvas = document.createElement('canvas');
+    recordCanvas.width = window.innerWidth;
+    recordCanvas.height = window.innerHeight;
+    const stream = recordCanvas.captureStream(30);
+    const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: "video/mp4;codecs=avc1",
+        videoBitsPerSecond: 25000000
+    });
+    mediaRecorder.start();
+
+    mediaRecorder.ondataavailable = (event) => {
+        const blob = new Blob([event.data], {type: "video/mp4"});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('download', "timelapse");
+        link.setAttribute('href', url);
+        link.click();
+    }
+    document.addEventListener("videoPause", () => {
+        mediaRecorder.stop();
+    });
+    return [mediaRecorder, recordCanvas.getContext('2d')];
+}
+
+function findElement(expression) {
+    return document.evaluate(expression, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+}
+
+async function timelapseMain() {
+    const observer = new MutationObserver(mutations => {
+        for (let mutation of mutations) {
+            for (let node of mutation.addedNodes) {
+                if (!(node instanceof HTMLElement)) continue;
+                if (node.matches('div[class="historyselect"]') || node.matches('div[id="historyselect"]')) {
+                    const timelapseButton = document.createElement("button");
+                    timelapseButton.innerText = "Створити таймлапс";
+                    timelapseButton.onclick = () => {
+                        if (timelapseButton.innerText === "Створити таймлапс") {
+                            if (!findElement("//button[text()='→']")) {
+                                timelapseButton.innerText = "Вибери дату";
+                                setTimeout(() => {
+                                    timelapseButton.innerText = "Створити таймлапс";
+                                }, 1000);
+                                return;
+                            }
+                            timelapseButton.innerText = "Стоп";
+                            const [mediaRecorder, context] = record();
+                            setInterval(() => {
+                                if (mediaRecorder.state === "recording") {
+                                    const arrow = findElement("//button[text()='→']");
+                                    const canvas = document.querySelector('.viewport');
+                                    context.drawImage(canvas, 0, 0);
+                                    arrow.click();
+                                }
+                            }, 500);
+                        } else if (timelapseButton.innerText === "Стоп") {
+                            timelapseButton.innerText = "Створити таймлапс";
+                            document.dispatchEvent(new CustomEvent("videoPause"));
+                        }
+                    }
+                    node.style.height = "auto";
+                    node.appendChild(timelapseButton);
+                }
+            }
+        }
+    });
+    observer.observe(document, {
+        childList: true,
+        subtree: true,
+        characterDataOldValue: true
+    });
 }
