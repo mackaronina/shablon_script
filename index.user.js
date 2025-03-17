@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.74
+// @version      1.75
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -614,7 +614,7 @@ function record() {
     const stream = recordCanvas.captureStream(30);
     const mediaRecorder = new MediaRecorder(stream, {
         mimeType: "video/webm",
-        videoBitsPerSecond: 25000000
+        videoBitsPerSecond: 250000000
     });
     mediaRecorder.start();
 
