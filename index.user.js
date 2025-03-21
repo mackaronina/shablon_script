@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UkrpixelShablon
 // @namespace    https://tampermonkey.net/
-// @version      1.77
+// @version      1.79
 // @description  UkrpixelShablon
 // @author       Ukrpixel
 // @grant        none
@@ -20,7 +20,7 @@
 // @connect      globepixel.fun
 // @connect      pixelroyal.fun
 // @connect      localhost
-// @connect      pixel-bot-2.onrender.com
+// @connect      abobapixelbot.onrender.com
 // @match        *://fuckyouarkeros.fun/*
 // @match        *://pixelplanet.fun/*
 // @match        *://pixmap.fun/*
@@ -32,8 +32,7 @@
 // @match        *://pixelroyal.fun/*
 // ==/UserScript==
 
-const src_picture = 'https://pixel-bot-2.onrender.com/shablon_picture'
-const src_info = 'https://pixel-bot-2.onrender.com/shablon_info'
+const srcInfo = 'https://abobapixelbot.onrender.com/shablon_info'
 const templateName = 'UKRPIXEL'
 
 let notificationRadius = 300;
@@ -51,7 +50,7 @@ let viewY = parseInt(args[args.length - 2]);
 let possibleVoidPoints = {};
 
 let mapPoints = [];
-let shablonHash = '';
+let shablonLink = '';
 let pinText = 'Закріп без тексту';
 
 const PING_OP = 0xB0;
@@ -82,7 +81,7 @@ async function shablonMain() {
 }
 
 async function updateInfo(show = true) {
-    const info = await loadInfo(src_info);
+    const info = await loadInfo(srcInfo);
 
     if (info.text.length === 0) {
         pinText = 'Закріп без тексту'
@@ -93,9 +92,9 @@ async function updateInfo(show = true) {
 
     mapPoints = info.points;
 
-    if (info.pic_hash !== shablonHash) {
-        shablonHash = info.pic_hash;
-        const file = await loadFile(src_picture);
+    if (info.pic_link !== shablonLink) {
+        shablonLink = info.pic_link;
+        const file = await loadFile(info.pic_link);
         if (isTemplateExists(templateName)) {
             updateTemplate(file, info, templateName);
         } else {
@@ -614,7 +613,7 @@ function record() {
     const stream = recordCanvas.captureStream(30);
     const mediaRecorder = new MediaRecorder(stream, {
         mimeType: "video/webm",
-        videoBitsPerSecond: 25*1024*1024
+        videoBitsPerSecond: 25 * 1024 * 1024
     });
     mediaRecorder.start();
 
