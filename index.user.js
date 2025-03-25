@@ -20,7 +20,7 @@
 // @connect      globepixel.fun
 // @connect      pixelroyal.fun
 // @connect      localhost
-// @connect      abobapixelbot.onrender.com
+// @connect      abobapixelbot-m0y2.onrender.com
 // @match        *://fuckyouarkeros.fun/*
 // @match        *://pixelplanet.fun/*
 // @match        *://pixmap.fun/*
@@ -32,7 +32,7 @@
 // @match        *://pixelroyal.fun/*
 // ==/UserScript==
 
-const srcInfo = 'https://abobapixelbot.onrender.com/shablon_info'
+const srcInfo = 'https://abobapixelbot-m0y2.onrender.com/shablon_info'
 const templateName = 'UKRPIXEL'
 
 let notificationRadius = 300;
